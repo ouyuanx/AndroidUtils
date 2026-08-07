@@ -63,6 +63,12 @@ dependencies {
     // 提供 ContextCompat、IntentCompat、WindowInsetsCompat 等版本兼容 API。
     implementation(libs.androidx.core.ktx)
 
+    // 权限申请 API 直接公开 IPermission，因此使用 api 传递给工具库使用方。
+    api(libs.xxpermissions)
+
+    // XXPermissions 官方要求同时引入 DeviceCompat，但本库不会直接暴露其类型。
+    implementation(libs.device.compat)
+
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
 }

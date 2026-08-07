@@ -16,7 +16,7 @@
 | `packageinfo` | `appName()`、`appVersionName()`、`appVersionCode()` | 获取当前应用名称和版本信息 |
 | `packageinfo` | `isPackageInstalled()`、`openApp()` | 检查并打开指定应用 |
 | `packageinfo` | `appSignatureMd5()`、`appSignatureSha1()`、`appSignatureSha256()` | 获取当前应用的签名证书指纹 |
-| `permission` | `hasPermission()`、`openAppSettings()` | 检查权限和打开当前应用设置页 |
+| `permission` | `hasPermission()`、`requestPermissions()`、`openPermissionSettings()` | 检查、申请权限和打开权限设置页 |
 | `uri` | `displayName()`、`contentSize()`、`mimeType()` | 读取 `content://` URI 的常用元数据 |
 | `view` | `showKeyboard()`、`hideKeyboard()` | 显示或隐藏软键盘 |
 
@@ -48,8 +48,39 @@ if (!context.hasPermission(Manifest.permission.CAMERA)) {
 }
 ```
 
-权限申请涉及界面时机和用户说明，本库只提供检查与设置页跳转；请在 Activity 或 Compose 界面中使用
-Activity Result API 发起权限申请。
+权限申请基于 XXPermissions。由于 XXPermissions 发布在 JitPack，使用本库前需要在调用方的
+`settings.gradle.kts` 中添加仓库：
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
+```
+
+申请相机权限：
+
+```kotlin
+import com.hjq.permissions.permission.PermissionLists
+import io.github.ouyuanx.androidutils.permission.openPermissionSettings
+import io.github.ouyuanx.androidutils.permission.requestPermissions
+
+val camera = PermissionLists.getCameraPermission()
+val started = context.requestPermissions(camera) { result ->
+    when {
+        result.allGranted -> openCamera()
+        result.doNotAskAgain -> context.openPermissionSettings(result.deniedPermissions)
+        else -> showPermissionDeniedMessage()
+    }
+}
+```
+
+权限封装不会自动显示 Toast 或跳转设置页，以免工具库替应用决定 UI 和交互。读取相册图片时不要继续
+使用旧的读写外部存储组合；使用 XXPermissions 的 `getReadMediaImagesPermission()`，或者在仅需
+用户选择图片时优先使用系统 Photo Picker。
 
 监听网络状态前，需要在应用的 `AndroidManifest.xml` 中声明普通权限：
 
