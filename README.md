@@ -13,7 +13,9 @@
 | `intent` | `startActivitySafely()`、`openUrl()`、`shareText()` | 安全启动页面、打开 HTTP(S) 地址、分享文本 |
 | `intent` | `parcelableExtra()`、`parcelable()` | 跨 Android 版本读取类型安全的 `Parcelable` |
 | `network` | `NetworkMonitor`、`NetworkState` | 获取并监听网络可用性、验证状态、计费状态和传输类型 |
-| `packageinfo` | `appVersionName()`、`appVersionCode()` | 获取当前应用版本信息 |
+| `packageinfo` | `appName()`、`appVersionName()`、`appVersionCode()` | 获取当前应用名称和版本信息 |
+| `packageinfo` | `isPackageInstalled()`、`openApp()` | 检查并打开指定应用 |
+| `packageinfo` | `appSignatureMd5()`、`appSignatureSha1()`、`appSignatureSha256()` | 获取当前应用的签名证书指纹 |
 | `permission` | `hasPermission()`、`openAppSettings()` | 检查权限和打开当前应用设置页 |
 | `uri` | `displayName()`、`contentSize()`、`mimeType()` | 读取 `content://` URI 的常用元数据 |
 | `view` | `showKeyboard()`、`hideKeyboard()` | 显示或隐藏软键盘 |
@@ -73,6 +75,31 @@ observation.close()
 import io.github.ouyuanx.androidutils.intent.parcelableExtra
 
 val user = intent.parcelableExtra<User>("user")
+```
+
+读取应用信息和签名证书指纹：
+
+```kotlin
+import io.github.ouyuanx.androidutils.packageinfo.appName
+import io.github.ouyuanx.androidutils.packageinfo.appSignatureSha256
+import io.github.ouyuanx.androidutils.packageinfo.appVersionName
+
+val name = context.appName()
+val versionName = context.appVersionName()
+val sha256 = context.appSignatureSha256()
+```
+
+签名指纹使用大写十六进制和冒号分隔。常规应用只有一个当前签名，可以直接使用上面的便捷方法；
+如需处理多签名或签名证书轮换，可调用 `appSignatureFingerprints()` 获取列表。MD5 和 SHA-1
+仅用于兼容要求这些指纹的旧平台，新接入的安全校验应优先使用 SHA-256。
+
+Android 11（API 30）及以上版本会限制应用可见性。使用 `isPackageInstalled()` 查询普通第三方
+应用前，可能需要在调用方的 `AndroidManifest.xml` 中通过 `<queries>` 声明目标包名：
+
+```xml
+<queries>
+    <package android:name="com.example.target" />
+</queries>
 ```
 
 ## 项目结构

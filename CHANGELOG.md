@@ -10,5 +10,6 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ### Added
 
 - Initial Android library and publication structure.
+- Add package-information extensions for app labels, installation checks, launching apps, and MD5, SHA-1, and SHA-256 signing-certificate fingerprints.
 
 [Unreleased]: https://github.com/ouyuanx/AndroidUtils/commits/main
