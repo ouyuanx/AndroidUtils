@@ -2,8 +2,78 @@
 
 一个轻量级 Android 工具库，由 [ouyuanx](https://github.com/ouyuanx) 维护。
 
-当前仓库已经完成 Android Library、Maven 发布元数据、本地发布和持续集成的基础配置。
-具体工具 API 可以按实际需求逐步添加。
+当前仓库已经完成 Android Library、常用工具 API、示例应用、Maven 发布元数据和持续集成配置。
+
+## 已提供的工具
+
+| 包名 | 工具 | 用途 |
+| --- | --- | --- |
+| `activity` | `findActivity()` | 从 `Context`、`ContextWrapper` 中安全查找 `Activity` |
+| `clipboard` | `copyText()` | 将文本复制到系统剪贴板 |
+| `intent` | `startActivitySafely()`、`openUrl()`、`shareText()` | 安全启动页面、打开 HTTP(S) 地址、分享文本 |
+| `intent` | `parcelableExtra()`、`parcelable()` | 跨 Android 版本读取类型安全的 `Parcelable` |
+| `network` | `NetworkMonitor`、`NetworkState` | 获取并监听网络可用性、验证状态、计费状态和传输类型 |
+| `packageinfo` | `appVersionName()`、`appVersionCode()` | 获取当前应用版本信息 |
+| `permission` | `hasPermission()`、`openAppSettings()` | 检查权限和打开当前应用设置页 |
+| `uri` | `displayName()`、`contentSize()`、`mimeType()` | 读取 `content://` URI 的常用元数据 |
+| `view` | `showKeyboard()`、`hideKeyboard()` | 显示或隐藏软键盘 |
+
+所有公共 API 都位于 `io.github.ouyuanx.androidutils` 包下，并按用途拆分子包，按需导入即可。
+
+## 快速使用
+
+复制文本、打开网页和分享文本：
+
+```kotlin
+import io.github.ouyuanx.androidutils.clipboard.copyText
+import io.github.ouyuanx.androidutils.intent.openUrl
+import io.github.ouyuanx.androidutils.intent.shareText
+
+context.copyText("AndroidUtils")
+context.openUrl("https://github.com/ouyuanx/AndroidUtils")
+context.shareText("推荐一个 Android 工具库：AndroidUtils")
+```
+
+检查权限并打开应用设置页：
+
+```kotlin
+import android.Manifest
+import io.github.ouyuanx.androidutils.permission.hasPermission
+import io.github.ouyuanx.androidutils.permission.openAppSettings
+
+if (!context.hasPermission(Manifest.permission.CAMERA)) {
+    context.openAppSettings()
+}
+```
+
+权限申请涉及界面时机和用户说明，本库只提供检查与设置页跳转；请在 Activity 或 Compose 界面中使用
+Activity Result API 发起权限申请。
+
+监听网络状态前，需要在应用的 `AndroidManifest.xml` 中声明普通权限：
+
+```xml
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+```
+
+```kotlin
+import io.github.ouyuanx.androidutils.network.NetworkMonitor
+
+val monitor = NetworkMonitor(context)
+val observation = monitor.observe { state ->
+    println("网络可用：${state.isAvailable}，已验证：${state.isValidated}")
+}
+
+// Activity、Fragment 或 Compose 离开作用域时停止监听。
+observation.close()
+```
+
+读取 `Parcelable`：
+
+```kotlin
+import io.github.ouyuanx.androidutils.intent.parcelableExtra
+
+val user = intent.parcelableExtra<User>("user")
+```
 
 ## 项目结构
 
@@ -62,7 +132,7 @@ gradlew.bat :utils:publishToMavenLocal
 ./gradlew :utils:publishReleasePublicationToBuildDirectoryRepository
 ```
 
-## 添加工具代码
+## 参与开发
 
 公共 API 建议放在以下目录：
 

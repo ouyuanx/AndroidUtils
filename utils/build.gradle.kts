@@ -42,6 +42,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    testOptions {
+        // Robolectric 单元测试需要读取 Android 资源和 Manifest。
+        unitTests.isIncludeAndroidResources = true
+    }
+
     publishing {
         // 只发布 release 变体，避免把带调试信息的 debug AAR 对外发布。
         singleVariant("release") {
@@ -52,6 +57,14 @@ android {
             withJavadocJar()
         }
     }
+}
+
+dependencies {
+    // 提供 ContextCompat、IntentCompat、WindowInsetsCompat 等版本兼容 API。
+    implementation(libs.androidx.core.ktx)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
 }
 
 publishing {
