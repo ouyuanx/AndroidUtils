@@ -10,13 +10,17 @@
 | --- | --- | --- |
 | `activity` | `findActivity()` | 从 `Context`、`ContextWrapper` 中安全查找 `Activity` |
 | `clipboard` | `copyText()` | 将文本复制到系统剪贴板 |
+| `file` | `createFile()`、`ensureDirectory()`、`copyToWithParents()`、`moveTo()` | 创建、复制、移动、重命名和删除文件 |
+| `file` | `sha256()`、`formattedSize()`、`copyToFile()`、`copyToUri()` | 计算摘要与大小、在 `File` 和 `content://` 之间复制内容 |
 | `intent` | `startActivitySafely()`、`openUrl()`、`shareText()` | 安全启动页面、打开 HTTP(S) 地址、分享文本 |
 | `intent` | `parcelableExtra()`、`parcelable()` | 跨 Android 版本读取类型安全的 `Parcelable` |
+| `log` | `LogUtils` | 基于 Timber 输出分级日志 |
 | `network` | `NetworkMonitor`、`NetworkState` | 获取并监听网络可用性、验证状态、计费状态和传输类型 |
 | `packageinfo` | `appName()`、`appVersionName()`、`appVersionCode()` | 获取当前应用名称和版本信息 |
 | `packageinfo` | `isPackageInstalled()`、`openApp()` | 检查并打开指定应用 |
 | `packageinfo` | `appSignatureMd5()`、`appSignatureSha1()`、`appSignatureSha256()` | 获取当前应用的签名证书指纹 |
 | `permission` | `hasPermission()`、`requestPermissions()`、`openPermissionSettings()` | 检查、申请权限和打开权限设置页 |
+| `storage` | `MMKVUtils` | 初始化 MMKV，读写基础类型和 Parcelable |
 | `uri` | `displayName()`、`contentSize()`、`mimeType()` | 读取 `content://` URI 的常用元数据 |
 | `view` | `showKeyboard()`、`hideKeyboard()` | 显示或隐藏软键盘 |
 
@@ -69,7 +73,7 @@ import io.github.ouyuanx.androidutils.permission.openPermissionSettings
 import io.github.ouyuanx.androidutils.permission.requestPermissions
 
 val camera = PermissionLists.getCameraPermission()
-val started = context.requestPermissions(camera) { result ->
+context.requestPermissions(camera) { result ->
     when {
         result.allGranted -> openCamera()
         result.doNotAskAgain -> context.openPermissionSettings(result.deniedPermissions)
@@ -81,6 +85,49 @@ val started = context.requestPermissions(camera) { result ->
 权限封装不会自动显示 Toast 或跳转设置页，以免工具库替应用决定 UI 和交互。读取相册图片时不要继续
 使用旧的读写外部存储组合；使用 XXPermissions 的 `getReadMediaImagesPermission()`，或者在仅需
 用户选择图片时优先使用系统 Photo Picker。
+
+创建、移动文件以及处理文件选择器返回的 `Uri`：
+
+```kotlin
+val draft = File(context.filesDir, "drafts/message.txt").createFile()
+draft.writeText("待发布内容")
+
+val published = draft.moveTo(File(context.filesDir, "published/message.txt"))
+val checksum = published.sha256()
+
+contentResolver.copyToFile(selectedUri, File(context.cacheDir, "selected.bin"))
+published.copyToUri(contentResolver, destinationUri)
+```
+
+在 Application 中初始化 MMKV 和日志：
+
+```kotlin
+class App : Application() {
+    override fun onCreate() {
+        super.onCreate()
+
+        MMKVUtils.init(this)
+        LogUtils.init(isDebug = BuildConfig.DEBUG)
+    }
+}
+```
+
+读写 MMKV：
+
+```kotlin
+MMKVUtils.putString("username", "ouyuanx")
+val username = MMKVUtils.getString("username")
+```
+
+输出日志：
+
+```kotlin
+LogUtils.d("用户 %s 登录", username)
+LogUtils.e(exception, "请求失败")
+```
+
+MMKV 2.x 支持 Android API 23 及以上，但只提供 64 位架构；需要兼容 32 位设备时应改用 MMKV
+1.3.x LTS。
 
 监听网络状态前，需要在应用的 `AndroidManifest.xml` 中声明普通权限：
 
@@ -137,6 +184,9 @@ Android 11（API 30）及以上版本会限制应用可见性。使用 `isPackag
 
 - `utils`：真正的 Android 工具库模块，构建结果为 AAR，也是将来发布到 Maven Central 的模块。
 - `app`：示例应用，用于集成验证、界面演示和手工测试。
+
+示例应用包含权限、MMKV 存取和 Timber 日志的可点击测试用例，并展示授权、拒绝、永久拒绝、
+无法发起请求以及键值读写结果。
 
 ## 环境要求
 

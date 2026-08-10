@@ -34,13 +34,14 @@ class XXPermissionExtTest {
     }
 
     @Test
-    fun `requestPermissions returns false without an Activity`() {
+    fun `requestPermissions does not request without an Activity`() {
         val context: Context = RuntimeEnvironment.getApplication()
+        var callbackCalled = false
 
-        val started = context.requestPermissions(cameraPermission) {
-            error("没有 Activity 时不应执行权限回调")
+        context.requestPermissions(cameraPermission) {
+            callbackCalled = true
         }
 
-        assertFalse(started)
+        assertFalse(callbackCalled)
     }
 }

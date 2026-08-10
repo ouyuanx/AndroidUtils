@@ -69,6 +69,10 @@ dependencies {
     // XXPermissions 官方要求同时引入 DeviceCompat，但本库不会直接暴露其类型。
     implementation(libs.device.compat)
 
+    // MMKV 和 Timber 只是实现细节，不出现在工具库的公开 API 中。
+    implementation(libs.mmkv)
+    implementation(libs.timber)
+
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
 }

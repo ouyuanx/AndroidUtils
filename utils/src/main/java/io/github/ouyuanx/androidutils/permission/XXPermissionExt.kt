@@ -3,7 +3,6 @@
 package io.github.ouyuanx.androidutils.permission
 
 import android.content.Context
-import androidx.annotation.CheckResult
 import com.hjq.permissions.XXPermissions
 import com.hjq.permissions.permission.base.IPermission
 import io.github.ouyuanx.androidutils.activity.findActivity
@@ -27,17 +26,16 @@ data class PermissionRequestResult(
 /**
  * 使用 XXPermissions 请求 [permissions]。
  *
- * 当前 [Context] 无法找到有效 Activity 时不会发起请求、不会执行 [onResult]，并返回 `false`；
- * 成功发起请求时返回 `true`。本方法不显示 Toast，也不会自动跳转设置页，界面反馈由调用方根据
- * [PermissionRequestResult] 决定。
+ * 当前 [Context] 无法找到 Activity 时不会发起请求，也不会执行 [onResult]。
+ * 本方法不显示 Toast，也不会自动跳转设置页，界面反馈由调用方根据 [PermissionRequestResult]
+ * 决定。
  */
-@CheckResult
 fun Context.requestPermissions(
     permissions: List<IPermission>,
     onResult: (PermissionRequestResult) -> Unit,
-): Boolean {
+) {
     require(permissions.isNotEmpty()) { "permissions 不能为空" }
-    val activity = findActivity() ?: return false
+    val activity = findActivity() ?: return
 
     XXPermissions.with(activity)
         .permissions(permissions)
@@ -47,19 +45,19 @@ fun Context.requestPermissions(
                     grantedPermissions = grantedList.toList(),
                     deniedPermissions = deniedList.toList(),
                     doNotAskAgain = deniedList.isNotEmpty() &&
-                        XXPermissions.isDoNotAskAgainPermissions(activity, deniedList),
+                            XXPermissions.isDoNotAskAgainPermissions(activity, deniedList),
                 ),
             )
         }
-    return true
 }
 
 /** 使用可变参数请求一个或多个 XXPermissions 权限对象。 */
-@CheckResult
 fun Context.requestPermissions(
     vararg permissions: IPermission,
     onResult: (PermissionRequestResult) -> Unit,
-): Boolean = requestPermissions(permissions.toList(), onResult)
+) {
+    requestPermissions(permissions.toList(), onResult)
+}
 
 /** 判断一个 XXPermissions 权限对象是否已授予。 */
 fun Context.hasPermission(permission: IPermission): Boolean =

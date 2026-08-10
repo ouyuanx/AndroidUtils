@@ -12,5 +12,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Initial Android library and publication structure.
 - Add package-information extensions for app labels, installation checks, launching apps, and MD5, SHA-1, and SHA-256 signing-certificate fingerprints.
 - Integrate XXPermissions into the core library with structured request results and permission-settings helpers.
+- Add MMKV-based storage helpers and Timber-based logging helpers with runnable app examples.
+- Add Kotlin file extensions for common create, copy, move, rename, delete, checksum, size, and URI transfer operations.
 
 [Unreleased]: https://github.com/ouyuanx/AndroidUtils/commits/main

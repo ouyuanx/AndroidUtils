@@ -11,6 +11,8 @@ composeBom = "2024.09.00"
 robolectric = "4.16.1"
 xxPermissions = "28.3"
 deviceCompat = "2.6"
+mmkv = "2.4.0"
+timber = "5.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -30,6 +32,8 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 xxpermissions = { group = "com.github.getActivity", name = "XXPermissions", version.ref = "xxPermissions" }
 device-compat = { group = "com.github.getActivity", name = "DeviceCompat", version.ref = "deviceCompat" }
+mmkv = { group = "com.tencent", name = "mmkv", version.ref = "mmkv" }
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
