@@ -1,12 +1,7 @@
 plugins {
     // Android Library 插件：把当前模块构建成可复用的 AAR，而不是可安装的 APK。
     alias(libs.plugins.android.library)
-
-    // Gradle 官方 Maven 发布插件：生成 AAR、POM、Gradle Module Metadata 等发布产物。
-    `maven-publish`
-
-    // Gradle 官方签名插件：使用 PGP 密钥为 Maven Central 发布产物签名。
-    signing
+    alias(libs.plugins.vanniktech.maven.publish)
 }
 
 // GROUP 和 VERSION_NAME 定义在项目根目录的 gradle.properties 中。
@@ -47,16 +42,6 @@ android {
         unitTests.isIncludeAndroidResources = true
     }
 
-    publishing {
-        // 只发布 release 变体，避免把带调试信息的 debug AAR 对外发布。
-        singleVariant("release") {
-            // 附带源码包，方便 Android Studio 跳转和查看源码。
-            withSourcesJar()
-
-            // 附带文档包；Maven Central 会校验是否存在对应的 Javadoc JAR。
-            withJavadocJar()
-        }
-    }
 }
 
 dependencies {
@@ -73,82 +58,56 @@ dependencies {
     implementation(libs.mmkv)
     implementation(libs.timber)
 
+    implementation(libs.zxing.core)
+    implementation(libs.toaster)
+
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
 }
 
-publishing {
-    publications {
-        // 创建名为 release 的 Maven 发布项。
-        register<MavenPublication>("release") {
-            // 三个字段共同组成依赖坐标：groupId:artifactId:version。
-            // 当前结果为 io.github.ouyuanx:android-utils:0.1.0。
-            groupId = providers.gradleProperty("GROUP").get()
-            artifactId = providers.gradleProperty("POM_ARTIFACT_ID").get()
-            version = providers.gradleProperty("VERSION_NAME").get()
-
-            // Android Gradle Plugin 会在项目配置完成后才创建 release 组件，
-            // 因此需要在 afterEvaluate 中把 release AAR 交给 MavenPublication。
-            afterEvaluate {
-                from(components["release"])
-            }
-
-            // 以下内容会写入生成的 POM，供仓库和使用者识别项目来源、许可证与作者。
-            pom {
-                name = "AndroidUtils"
-                description = "A lightweight Android utility library."
-                url = "https://github.com/ouyuanx/AndroidUtils"
-
-                // 声明本项目使用 Apache-2.0 开源许可证。
-                licenses {
-                    license {
-                        name = "The Apache License, Version 2.0"
-                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
-                        distribution = "repo"
-                    }
-                }
-
-                // Maven Central 要求提供开发者信息。
-                developers {
-                    developer {
-                        id = "ouyuanx"
-                        name = "ouyuanx"
-                        email = "ouyuanx@users.noreply.github.com"
-                        url = "https://github.com/ouyuanx"
-                    }
-                }
-
-                // 源码管理信息，指向该库对应的 GitHub Git 仓库。
-                scm {
-                    connection = "scm:git:git://github.com/ouyuanx/AndroidUtils.git"
-                    developerConnection = "scm:git:ssh://github.com/ouyuanx/AndroidUtils.git"
-                    url = "https://github.com/ouyuanx/AndroidUtils"
-                }
+mavenPublishing {
+    publishToMavenCentral()
+    if (!providers.gradleProperty("signingInMemoryKey").orNull.isNullOrBlank()) {
+        signAllPublications()
+    }
+    coordinates(
+        providers.gradleProperty("GROUP").get(),
+        providers.gradleProperty("POM_ARTIFACT_ID").get(),
+        providers.gradleProperty("VERSION_NAME").get(),
+    )
+    pom {
+        name.set("AndroidUtils")
+        description.set("A lightweight Android utility library.")
+        inceptionYear.set("2026")
+        url.set("https://github.com/ouyuanx/AndroidUtils")
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("repo")
             }
         }
-    }
-
-    repositories {
-        // 这是用于本地检查的文件型 Maven 仓库，不是 Maven Central。
-        // 执行 publishReleasePublicationToBuildDirectoryRepository 后，
-        // 产物会生成到 utils/build/repo。
-        maven {
-            name = "buildDirectory"
-            url = uri(layout.buildDirectory.dir("repo"))
+        developers {
+            developer {
+                id.set("ouyuanx")
+                name.set("ouyuanx")
+                email.set("ouyuanx@users.noreply.github.com")
+                url.set("https://github.com/ouyuanx")
+            }
+        }
+        scm {
+            connection.set("scm:git:git://github.com/ouyuanx/AndroidUtils.git")
+            developerConnection.set("scm:git:ssh://git@github.com/ouyuanx/AndroidUtils.git")
+            url.set("https://github.com/ouyuanx/AndroidUtils")
         }
     }
 }
 
-signing {
-    // 从 Gradle 属性读取内存 PGP 私钥和密码。
-    // CI 中应使用 ORG_GRADLE_PROJECT_signingInMemoryKey 和
-    // ORG_GRADLE_PROJECT_signingInMemoryKeyPassword 环境变量注入，严禁提交真实密钥。
-    val signingKey = providers.gradleProperty("signingInMemoryKey").orNull
-    val signingPassword = providers.gradleProperty("signingInMemoryKeyPassword").orNull
-
-    // 没有密钥时跳过签名，保证普通本地构建不受影响；正式发布 Maven Central 时必须提供。
-    if (!signingKey.isNullOrBlank()) {
-        useInMemoryPgpKeys(signingKey, signingPassword)
-        sign(publishing.publications["release"])
+publishing {
+    repositories {
+        maven {
+            name = "buildDirectory"
+            url = uri(layout.buildDirectory.dir("repo"))
+        }
     }
 }

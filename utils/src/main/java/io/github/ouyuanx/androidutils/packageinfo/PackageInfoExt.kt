@@ -13,7 +13,7 @@ import io.github.ouyuanx.androidutils.intent.startActivitySafely
 import java.security.MessageDigest
 
 /** 当前应用签名证书支持的摘要算法。 */
-public enum class SignatureDigestAlgorithm(
+enum class SignatureDigestAlgorithm(
     internal val jcaName: String,
 ) {
     /** 仅建议用于兼容需要 MD5 指纹的第三方平台。 */
@@ -27,13 +27,13 @@ public enum class SignatureDigestAlgorithm(
 }
 
 /** 获取当前应用向用户展示的名称。 */
-public fun Context.appName(): CharSequence = applicationInfo.loadLabel(packageManager)
+fun Context.appName(): CharSequence = applicationInfo.loadLabel(packageManager)
 
 /** 获取当前应用的 versionName；系统无法读取包信息时返回 `null`。 */
-public fun Context.appVersionName(): String? = ownPackageInfo()?.versionName
+fun Context.appVersionName(): String? = ownPackageInfo()?.versionName
 
 /** 获取当前应用的长整型 versionCode；系统无法读取包信息时返回 `null`。 */
-public fun Context.appVersionCode(): Long? =
+fun Context.appVersionCode(): Long? =
     ownPackageInfo()?.let(PackageInfoCompat::getLongVersionCode)
 
 /**
@@ -43,7 +43,7 @@ public fun Context.appVersionCode(): Long? =
  * 在自身 AndroidManifest.xml 的 `<queries>` 中声明目标包名。
  */
 @CheckResult
-public fun Context.isPackageInstalled(targetPackageName: String): Boolean {
+fun Context.isPackageInstalled(targetPackageName: String): Boolean {
     if (targetPackageName.isBlank()) return false
 
     return try {
@@ -56,7 +56,7 @@ public fun Context.isPackageInstalled(targetPackageName: String): Boolean {
 
 /** 打开 [targetPackageName] 对应应用的启动页；应用不可见、未安装或无法启动时返回 `false`。 */
 @CheckResult
-public fun Context.openApp(targetPackageName: String): Boolean {
+fun Context.openApp(targetPackageName: String): Boolean {
     if (targetPackageName.isBlank()) return false
 
     val launchIntent = packageManager.getLaunchIntentForPackage(targetPackageName) ?: return false
@@ -72,7 +72,7 @@ public fun Context.openApp(targetPackageName: String): Boolean {
  */
 @CheckResult
 @JvmOverloads
-public fun Context.appSignatureFingerprints(
+fun Context.appSignatureFingerprints(
     algorithm: SignatureDigestAlgorithm = SignatureDigestAlgorithm.SHA256,
     includeHistory: Boolean = false,
 ): List<String> = signingCertificates(includeHistory)
@@ -80,15 +80,15 @@ public fun Context.appSignatureFingerprints(
     .distinct()
 
 /** 获取当前应用第一个签名证书的 MD5 指纹；仅建议用于兼容旧平台。 */
-public fun Context.appSignatureMd5(): String? =
+fun Context.appSignatureMd5(): String? =
     appSignatureFingerprints(SignatureDigestAlgorithm.MD5).firstOrNull()
 
 /** 获取当前应用第一个签名证书的 SHA-1 指纹；仅建议用于兼容旧平台。 */
-public fun Context.appSignatureSha1(): String? =
+fun Context.appSignatureSha1(): String? =
     appSignatureFingerprints(SignatureDigestAlgorithm.SHA1).firstOrNull()
 
 /** 获取当前应用第一个签名证书的 SHA-256 指纹。 */
-public fun Context.appSignatureSha256(): String? =
+fun Context.appSignatureSha256(): String? =
     appSignatureFingerprints(SignatureDigestAlgorithm.SHA256).firstOrNull()
 
 private fun Context.ownPackageInfo(flags: Long = 0): PackageInfo? = try {

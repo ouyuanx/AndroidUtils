@@ -20,7 +20,9 @@
 | `packageinfo` | `isPackageInstalled()`、`openApp()` | 检查并打开指定应用 |
 | `packageinfo` | `appSignatureMd5()`、`appSignatureSha1()`、`appSignatureSha256()` | 获取当前应用的签名证书指纹 |
 | `permission` | `hasPermission()`、`requestPermissions()`、`openPermissionSettings()` | 检查、申请权限和打开权限设置页 |
+| `qrcode` | `QRCodeUtils` | 生成普通或带中心 Logo 的二维码 Bitmap |
 | `storage` | `MMKVUtils` | 初始化 MMKV，读写基础类型和 Parcelable |
+| `toast` | `ToastUtils` | 显示普通、成功、失败和警告 Toast |
 | `uri` | `displayName()`、`contentSize()`、`mimeType()` | 读取 `content://` URI 的常用元数据 |
 | `view` | `showKeyboard()`、`hideKeyboard()` | 显示或隐藏软键盘 |
 
@@ -99,7 +101,7 @@ contentResolver.copyToFile(selectedUri, File(context.cacheDir, "selected.bin"))
 published.copyToUri(contentResolver, destinationUri)
 ```
 
-在 Application 中初始化 MMKV 和日志：
+在 Application 中初始化 MMKV、日志和 Toast：
 
 ```kotlin
 class App : Application() {
@@ -108,6 +110,7 @@ class App : Application() {
 
         MMKVUtils.init(this)
         LogUtils.init(isDebug = BuildConfig.DEBUG)
+        ToastUtils.init(this)
     }
 }
 ```
@@ -124,6 +127,19 @@ val username = MMKVUtils.getString("username")
 ```kotlin
 LogUtils.d("用户 %s 登录", username)
 LogUtils.e(exception, "请求失败")
+```
+
+显示 Toast 和生成二维码：
+
+```kotlin
+ToastUtils.success("保存成功")
+ToastUtils.error("请求失败")
+
+val qrCode = QRCodeUtils.generate(
+    content = "https://github.com/ouyuanx/AndroidUtils",
+    size = 512,
+    logo = appLogo,
+)
 ```
 
 MMKV 2.x 支持 Android API 23 及以上，但只提供 64 位架构；需要兼容 32 位设备时应改用 MMKV
@@ -237,7 +253,7 @@ gradlew.bat :utils:publishToMavenLocal
 生成一个位于 `utils/build/repo` 的文件型 Maven 仓库，便于检查 AAR、POM、源码包和文档包：
 
 ```shell
-./gradlew :utils:publishReleasePublicationToBuildDirectoryRepository
+./gradlew :utils:publishMavenPublicationToBuildDirectoryRepository
 ```
 
 ## 参与开发
@@ -263,10 +279,11 @@ utils/src/main/java/io/github/ouyuanx/androidutils
 2. 更新 `CHANGELOG.md`。
 3. 执行完整构建和本地 Maven 发布验证。
 4. 创建与版本对应的 Git 标签，例如 `v0.1.0`。
-5. 通过 GitHub Actions 发布到 Maven Central。
+5. 推送与版本对应的 Git 标签，由 GitHub Actions 签名并发布到 Maven Central。
 
-Maven Central 凭据和 PGP 私钥必须存放在 GitHub Actions Secrets 中，严禁写入源码、
-`gradle.properties` 或提交到 Git 仓库。
+Maven Central 需要在 GitHub Actions Secrets 中配置 `MAVEN_CENTRAL_USERNAME`、
+`MAVEN_CENTRAL_PASSWORD`、`SIGNING_IN_MEMORY_KEY` 和 `SIGNING_IN_MEMORY_KEY_PASSWORD`。
+这些凭据和 PGP 私钥严禁写入源码、`gradle.properties` 或提交到 Git 仓库。
 
 ## 开源许可证
 

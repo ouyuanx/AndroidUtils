@@ -37,4 +37,4 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build, test, and verify publication
-        run: ./gradlew build :utils:publishReleasePublicationToBuildDirectoryRepository --stacktrace
+        run: ./gradlew build :utils:publishMavenPublicationToBuildDirectoryRepository --stacktrace
